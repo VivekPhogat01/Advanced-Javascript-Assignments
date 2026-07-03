@@ -9,7 +9,12 @@
 
 
 function callbackify(fn) {
-
+  return function (...args) {
+    const callback = args.pop();
+    fn(...args)
+      .then((result) => callback(null, result))
+      .catch((error) => callback(error));
+  };
 }
 
 module.exports = callbackify;
