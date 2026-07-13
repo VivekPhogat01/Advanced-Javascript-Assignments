@@ -10,7 +10,45 @@
 
 
 function fetchWithTimeout(url, ms, callback) {
+    let iscompleted = false;
+    
+    const timeout = setTimeout(() => {
+        if (!iscompleted) {
+            iscompleted = true;
+            callback(new Error("Request Timed Out"));
+        }
+    }, ms);
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (!iscompleted) {
+                iscompleted = true;
+                clearTimeout(timeout);
+                callback(null, data);
+            }
+        })
+        .catch(error => {
+            if (!iscompleted) {
+                iscompleted = true;
+                clearTimeout(timeout);
+                callback(error);
+            }
+        });
 
 }
+function printResult(err, data) {
+    if (err) {
+        console.error("Error:", err.message);
+    } else {
+        console.log("Data:", data);
+    }
+}
+
+fetchWithTimeout(
+    "https://jsonplacehoder.typicode.com/todos/1",
+    30,
+    printResult
+);
 
 module.exports = fetchWithTimeout;
